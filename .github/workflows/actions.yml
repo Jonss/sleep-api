@@ -1,0 +1,58 @@
+name: sleep ci
+
+on:
+  push:
+    branches: ["*"]
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 22
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '22'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Set up Docker Compose
+        run: |
+          docker-compose up -d
+        env:
+          COMPOSE_HTTP_TIMEOUT: 200 # Set if your docker-compose might need more time
+
+      - name: Wait for Postgres to be ready
+        run: |
+          until docker exec <postgres_container_name> pg_isready -U <postgres_user> -d <postgres_db_name>; do
+            echo "Waiting for postgres..."
+            sleep 2
+          done
+
+      - name: Lint with ktlint
+        run: ./gradlew ktlintCheck --no-daemon
+
+      - name: Build with Gradle
+        run: ./gradlew build --no-daemon
+
+      - name: Run tests with Gradle
+        run: ./gradlew test --no-daemon
+
+      - name: Tear down Docker Compose
+        if: always()
+        run: docker-compose down
