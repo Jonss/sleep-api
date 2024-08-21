@@ -17,11 +17,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up JDK 22
+      - name: Set up JDK 11
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: '22'
+          java-version: '11'
 
       - name: Cache Gradle packages
         uses: actions/cache@v3
@@ -30,6 +30,9 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
+
+      - name: Lint with ktlint
+        run: ./gradlew ktlintCheck --no-daemon
 
       - name: Set up Docker Compose
         run: |
@@ -43,9 +46,6 @@ jobs:
             echo "Waiting for postgres..."
             sleep 2
           done
-
-      - name: Lint with ktlint
-        run: ./gradlew ktlintCheck --no-daemon
 
       - name: Build with Gradle
         run: ./gradlew build --no-daemon
