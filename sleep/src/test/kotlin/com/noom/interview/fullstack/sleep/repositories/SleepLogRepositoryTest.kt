@@ -1,6 +1,8 @@
 package com.noom.interview.fullstack.sleep.repositories
 
+import com.noom.interview.fullstack.sleep.models.entities.SleepLog
 import com.noom.interview.fullstack.sleep.models.entities.User
+import com.noom.interview.fullstack.sleep.models.enums.SleepQuality
 import com.noom.interview.fullstack.sleep.repositories.utils.cleanDB
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -11,16 +13,23 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.event.annotation.AfterTestClass
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 @SpringBootTest
 @TestPropertySource("classpath:application.repo-test.properties")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class UserRepositoryTest {
+class SleepLogRepositoryTest {
+    @Autowired
+    private lateinit var sleepLogRepository: SleepLogRepository
+
     @Autowired
     private lateinit var userRepository: UserRepository
 
     @Autowired
     private lateinit var jdbcTemplate: JdbcTemplate
+
+    private val externalUserId = "63e8eafc-6156-4f5f-83df-8116cce4ec71"
 
     @BeforeEach
     fun setUp() {
@@ -33,26 +42,13 @@ class UserRepositoryTest {
     }
 
     @Test
-    fun shouldCreateUser() {
-        // given
-        val user = User(0, "86b4362e-a2cb-49d7-ba40-9f066bfeb707")
+    fun shouldCreateSleepLog() {
+        userRepository.create(User(0, externalUserId))
+        val userId = userRepository.findUserByExternalId(externalUserId)?.id ?: 0L
 
-        // when
-        userRepository.create(user)
+        val sleepLog = SleepLog(0, userId, Instant.now().minus(8, ChronoUnit.HOURS), Instant.now(), SleepQuality.OK, Instant.now())
 
-        // then
-        val userFound = userRepository.findUserByExternalId(user.externalId)
-        assertNotNull(userFound)
-        assertNotEquals(0, userFound?.id)
-        assertEquals(user.externalId, userFound?.externalId)
-    }
-
-    @Test
-    fun shouldNotFindUser() {
-        // given && when
-        val userFound = userRepository.findUserByExternalId("non-existing-external-id")
-
-        // then
-        assertNull(userFound)
+        val sleepLogId = sleepLogRepository.create(sleepLog)
+        assertNotEquals(0, sleepLogId)
     }
 }
