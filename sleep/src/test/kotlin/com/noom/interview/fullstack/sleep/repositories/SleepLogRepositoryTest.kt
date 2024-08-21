@@ -1,10 +1,12 @@
 package com.noom.interview.fullstack.sleep.repositories
 
+import com.noom.interview.fullstack.sleep.exceptions.EntityNotFoundException
 import com.noom.interview.fullstack.sleep.models.entities.SleepLog
 import com.noom.interview.fullstack.sleep.models.entities.User
 import com.noom.interview.fullstack.sleep.models.enums.SleepQuality
 import com.noom.interview.fullstack.sleep.repositories.utils.cleanDB
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -50,5 +52,15 @@ class SleepLogRepositoryTest {
 
         val sleepLogId = sleepLogRepository.create(sleepLog)
         assertNotEquals(0, sleepLogId)
+    }
+
+    @Test
+    fun shouldGetExceptionWhenUsersDoesNotExistsCreateSleepLog() {
+        val nonExistingUserId = 1000L
+
+        val sleepLog =
+            SleepLog(0, nonExistingUserId, Instant.now().minus(8, ChronoUnit.HOURS), Instant.now(), SleepQuality.OK, Instant.now())
+
+        assertThrows(EntityNotFoundException::class.java, { sleepLogRepository.create(sleepLog) })
     }
 }
