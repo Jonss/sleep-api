@@ -3,6 +3,7 @@ package com.noom.interview.fullstack.sleep.repositories
 import com.noom.interview.fullstack.sleep.models.entities.User
 import com.noom.interview.fullstack.sleep.models.utils.UserRowMapper
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Repository
 
@@ -15,8 +16,10 @@ class UserRepository {
 
     fun findUserByExternalId(externalId: String): User? {
         val sql = "SELECT id, external_id FROM users WHERE external_id = ?"
-        return jdbcTemplate.queryForObject(sql, UserRowMapper(), externalId)
+        return try {
+            jdbcTemplate.queryForObject(sql, UserRowMapper(), externalId)
+        } catch (e: EmptyResultDataAccessException) {
+            null
+        }
     }
-
-    fun deleteAll() = jdbcTemplate.update("DELETE FROM users")
 }
