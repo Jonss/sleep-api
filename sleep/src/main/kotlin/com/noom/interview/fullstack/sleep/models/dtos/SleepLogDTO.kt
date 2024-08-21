@@ -12,3 +12,13 @@ data class SleepLogDTO(
     val quality: SleepQuality,
     val createdAt: Instant,
 )
+
+data class SleepLogResponseDTO(
+    val interval: IntervalDTO,
+    val quality: SleepQuality,
+)
+
+data class IntervalDTO(
+    val startDate: Instant,
+    val endDate: Instant,
+)
