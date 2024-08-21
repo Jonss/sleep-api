@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:no-wildcard-imports")
+
 package com.noom.interview.fullstack.sleep.repositories
 
 import com.noom.interview.fullstack.sleep.exceptions.EntityNotFoundException
@@ -8,7 +10,11 @@ import com.noom.interview.fullstack.sleep.repositories.utils.createUser
 import com.noom.interview.fullstack.sleep.utils.endOfDay
 import com.noom.interview.fullstack.sleep.utils.startOfDay
 import com.noom.interview.fullstack.sleep.utils.yesterday
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -100,24 +106,26 @@ class SleepLogRepositoryTest {
         jdbcTemplate.update("update sleep set created_at = ? ", Timestamp.from(createdAt))
 
         // then
-        val yesterdaySleepLog = sleepLogRepository.fetchByUserIdFromInterval(userId, from, to)
+        val yesterdaySleepLogs = sleepLogRepository.fetchByUserIdFromInterval(userId, from, to)
+        val yesterdaySleepLog = yesterdaySleepLogs[0]
+        assertEquals(1, yesterdaySleepLogs.size)
         assertNotNull(yesterdaySleepLog)
-        assertNotEquals(0, yesterdaySleepLog?.id)
-        assertEquals(userId, yesterdaySleepLog?.user?.id)
-        assertEquals(externalUserId, yesterdaySleepLog?.user?.externalId)
-        assertEquals(SleepQuality.OK, yesterdaySleepLog?.quality)
-        assertEquals(sleepLog.startDate, yesterdaySleepLog?.startDate)
-        assertEquals(sleepLog.endDate, yesterdaySleepLog?.endDate)
+        assertNotEquals(0, yesterdaySleepLog.id)
+        assertEquals(userId, yesterdaySleepLog.user.id)
+        assertEquals(externalUserId, yesterdaySleepLog.user.externalId)
+        assertEquals(SleepQuality.OK, yesterdaySleepLog.quality)
+        assertEquals(sleepLog.startDate, yesterdaySleepLog.startDate)
+        assertEquals(sleepLog.endDate, yesterdaySleepLog.endDate)
     }
 
     @Test
-    fun shouldGetNullWhenUserDontExists() {
+    fun shouldGetNullWhenUserDoesNotExist() {
         val nonExistingUserId = 1000L
 
         val from = startOfDay(yesterday)
         val to = endOfDay(yesterday)
 
-        val yesterdaySleepLog = sleepLogRepository.fetchByUserIdFromInterval(nonExistingUserId, from, to)
-        assertNull(yesterdaySleepLog)
+        val yesterdaySleepLogs = sleepLogRepository.fetchByUserIdFromInterval(nonExistingUserId, from, to)
+        assertTrue(yesterdaySleepLogs.isEmpty())
     }
 }
