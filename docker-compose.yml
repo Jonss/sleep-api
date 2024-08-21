@@ -3,7 +3,7 @@ services:
     container_name: postgres_db
     image: postgres:13-alpine
     volumes:
-      - ./db:/var/lib/postgresql/data
+      - ./pg_db:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=user
