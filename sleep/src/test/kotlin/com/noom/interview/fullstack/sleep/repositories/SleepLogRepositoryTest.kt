@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.jdbc.core.queryForObject
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.event.annotation.AfterTestClass
 import java.time.Instant
@@ -45,12 +46,23 @@ class SleepLogRepositoryTest {
 
     @Test
     fun shouldCreateSleepLog() {
+        // given
         userRepository.create(User(0, externalUserId))
         val userId = userRepository.findUserByExternalId(externalUserId)?.id ?: 0L
 
         val sleepLog = SleepLog(0, userId, Instant.now().minus(8, ChronoUnit.HOURS), Instant.now(), SleepQuality.OK, Instant.now())
 
-        val sleepLogId = sleepLogRepository.create(sleepLog)
+        // when
+        sleepLogRepository.create(sleepLog)
+
+        val sleepLogId =
+            jdbcTemplate.queryForObject(
+                "select id from sleep where user_id = ? order by id desc limit 1",
+                arrayOf(userId),
+                Int::class.java,
+            )
+
+        // then
         assertNotEquals(0, sleepLogId)
     }
 
