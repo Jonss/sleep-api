@@ -1,11 +1,9 @@
-version: "3.9"
-
 services:
   db:
     container_name: postgres_db
     image: postgres:13-alpine
     volumes:
-      - ./db:/var/lib/postgresql/data
+      - ./pg_db:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=user
@@ -14,6 +12,21 @@ services:
       - "5432"
     ports:
       - "5432:5432"
+
+  db_test:
+    container_name: postgres_test_db
+    image: postgres:13-alpine
+    environment:
+      - POSTGRES_DB=testdb
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "user", "-d", "testdb" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   sleep_api:
     build: ./sleep/.
