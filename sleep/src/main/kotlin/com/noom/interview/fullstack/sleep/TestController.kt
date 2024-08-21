@@ -9,9 +9,8 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class TestController {
     @GetMapping("/test")
-    fun test() : Map<String, String> {
-        return mapOf(
-            "testMessage" to "Hello world!"
+    fun test(): Map<String, String> =
+        mapOf(
+            "testMessage" to "Hello world!",
         )
-    }
 }
