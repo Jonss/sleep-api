@@ -36,13 +36,13 @@ jobs:
 
       - name: Set up Docker Compose
         run: |
-          docker-compose up -d
+          docker-compose up -d db_test
         env:
           COMPOSE_HTTP_TIMEOUT: 200 # Set if your docker-compose might need more time
 
       - name: Wait for Postgres to be ready
         run: |
-          until docker exec <postgres_container_name> pg_isready -U <postgres_user> -d <postgres_db_name>; do
+          until docker exec postgres_test_db pg_isready -U user -d password; do
             echo "Waiting for postgres..."
             sleep 2
           done
