@@ -2,21 +2,23 @@ package com.noom.interview.fullstack.sleep.repositories
 
 import com.noom.interview.fullstack.sleep.exceptions.EntityNotFoundException
 import com.noom.interview.fullstack.sleep.models.entities.SleepLog
-import com.noom.interview.fullstack.sleep.models.entities.User
 import com.noom.interview.fullstack.sleep.models.enums.SleepQuality
 import com.noom.interview.fullstack.sleep.repositories.utils.cleanDB
-import org.junit.jupiter.api.Assertions.assertNotEquals
-import org.junit.jupiter.api.Assertions.assertThrows
+import com.noom.interview.fullstack.sleep.repositories.utils.createUser
+import com.noom.interview.fullstack.sleep.utils.endOfDay
+import com.noom.interview.fullstack.sleep.utils.startOfDay
+import com.noom.interview.fullstack.sleep.utils.yesterday
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.jdbc.core.queryForObject
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.event.annotation.AfterTestClass
-import java.time.Instant
+import java.sql.Timestamp
+import java.time.*
 import java.time.temporal.ChronoUnit
 
 @SpringBootTest
@@ -47,9 +49,7 @@ class SleepLogRepositoryTest {
     @Test
     fun shouldCreateSleepLog() {
         // given
-        userRepository.create(User(0, externalUserId))
-        val userId = userRepository.findUserByExternalId(externalUserId)?.id ?: 0L
-
+        val userId = createUser(userRepository)
         val sleepLog = SleepLog(0, userId, Instant.now().minus(8, ChronoUnit.HOURS), Instant.now(), SleepQuality.OK, Instant.now())
 
         // when
@@ -74,5 +74,50 @@ class SleepLogRepositoryTest {
             SleepLog(0, nonExistingUserId, Instant.now().minus(8, ChronoUnit.HOURS), Instant.now(), SleepQuality.OK, Instant.now())
 
         assertThrows(EntityNotFoundException::class.java, { sleepLogRepository.create(sleepLog) })
+    }
+
+    @Test
+    fun shouldFindASleepLogGivenAnInterval() {
+        // given
+        val userId = createUser(userRepository)
+
+        val from = startOfDay(yesterday)
+        val to = endOfDay(yesterday)
+        val createdAt = Instant.now().minus(23, ChronoUnit.HOURS)
+        val sleepLog =
+            SleepLog(
+                id = 0,
+                userId = userId,
+                startDate = yesterday,
+                endDate = yesterday.plus(7, ChronoUnit.HOURS),
+                quality = SleepQuality.OK,
+                createdAt = createdAt,
+            )
+
+        // when
+        sleepLogRepository.create(sleepLog)
+        // by pass on created_at behaviour on db
+        jdbcTemplate.update("update sleep set created_at = ? ", Timestamp.from(createdAt))
+
+        // then
+        val yesterdaySleepLog = sleepLogRepository.fetchByUserIdFromInterval(userId, from, to)
+        assertNotNull(yesterdaySleepLog)
+        assertNotEquals(0, yesterdaySleepLog?.id)
+        assertEquals(userId, yesterdaySleepLog?.user?.id)
+        assertEquals(externalUserId, yesterdaySleepLog?.user?.externalId)
+        assertEquals(SleepQuality.OK, yesterdaySleepLog?.quality)
+        assertEquals(sleepLog.startDate, yesterdaySleepLog?.startDate)
+        assertEquals(sleepLog.endDate, yesterdaySleepLog?.endDate)
+    }
+
+    @Test
+    fun shouldGetNullWhenUserDontExists() {
+        val nonExistingUserId = 1000L
+
+        val from = startOfDay(yesterday)
+        val to = endOfDay(yesterday)
+
+        val yesterdaySleepLog = sleepLogRepository.fetchByUserIdFromInterval(nonExistingUserId, from, to)
+        assertNull(yesterdaySleepLog)
     }
 }
