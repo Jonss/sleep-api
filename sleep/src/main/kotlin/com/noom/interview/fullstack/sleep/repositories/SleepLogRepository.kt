@@ -38,20 +38,25 @@ class SleepLogRepository {
         userId: Long,
         from: Instant,
         to: Instant,
-    ): SleepLogDTO? =
-        try {
-            val sql = """
-               SELECT s.id, s.quality, s.start_date, s.end_date,
-                s.created_at, u.external_id, u.id as user_id
-                FROM sleep s
-                INNER JOIN users u
-                ON s.user_id = u.id
-                WHERE s.user_id = ?
-                AND s.created_at BETWEEN ? AND ?
-                """
+    ): List<SleepLogDTO> {
+        val sql = """
+            SELECT s.id, s.quality, s.start_date, s.end_date, s.created_at, u.external_id, u.id as user_id
+            FROM sleep s
+            INNER JOIN users u ON s.user_id = u.id
+            WHERE s.user_id = ?
+            AND s.created_at BETWEEN ? AND ?
+            """
 
-            jdbcTemplate.queryForObject(sql, SleepRowMapper(), userId, Timestamp.from(from), Timestamp.from(to))
+        return try {
+            jdbcTemplate.query(
+                sql,
+                SleepRowMapper(),
+                userId,
+                Timestamp.from(from),
+                Timestamp.from(to),
+            )
         } catch (e: EmptyResultDataAccessException) {
-            null
+            emptyList() // Return an empty list instead of null
         }
+    }
 }
