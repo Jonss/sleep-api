@@ -1,10 +1,12 @@
 package com.noom.interview.fullstack.sleep.controllers
 
 import com.noom.interview.fullstack.sleep.models.dtos.SleepLogRequestDTO
+import com.noom.interview.fullstack.sleep.models.dtos.SleepLogResponseDTO
 import com.noom.interview.fullstack.sleep.services.SleepService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
@@ -20,10 +22,18 @@ class SleepController {
     @PostMapping
     fun create(
         @RequestBody request: SleepLogRequestDTO,
-        @RequestHeader(value = "x-external-id") header: String,
+        @RequestHeader(value = "x-external-id") externalId: String,
     ): ResponseEntity<Void> {
         sleepService
-            .createSleepLog(header, request)
+            .createSleepLog(externalId, request)
         return ResponseEntity.status(HttpStatus.CREATED).build()
+    }
+
+    @GetMapping(value = ["/last-night"])
+    fun getLah(
+        @RequestHeader(value = "x-external-id") externalId: String,
+    ): ResponseEntity<SleepLogResponseDTO> {
+        val sleepLog = sleepService.getLastNightSleepLog(externalId)
+        return ResponseEntity.ok().body(sleepLog)
     }
 }
