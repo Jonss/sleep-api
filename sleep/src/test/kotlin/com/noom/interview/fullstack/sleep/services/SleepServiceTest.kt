@@ -2,14 +2,15 @@ package com.noom.interview.fullstack.sleep.services
 
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doNothing
-import com.nhaarman.mockitokotlin2.doThrow
 import com.noom.interview.fullstack.sleep.exceptions.EntityNotFoundException
 import com.noom.interview.fullstack.sleep.models.dtos.IntervalDTO
 import com.noom.interview.fullstack.sleep.models.dtos.SleepLogRequestDTO
 import com.noom.interview.fullstack.sleep.models.enums.SleepQuality
 import com.noom.interview.fullstack.sleep.repositories.SleepLogRepository
+import com.noom.interview.fullstack.sleep.repositories.UserRepository
 import com.noom.interview.fullstack.sleep.services.stubs.multipleSleepLogs
 import com.noom.interview.fullstack.sleep.services.stubs.singleSleepLogsStub
+import com.noom.interview.fullstack.sleep.services.stubs.user
 import com.noom.interview.fullstack.sleep.utils.endOfDay
 import com.noom.interview.fullstack.sleep.utils.startOfDay
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -31,6 +32,9 @@ import java.time.temporal.ChronoUnit
 class SleepServiceTest {
     @Mock
     lateinit var mockRepository: SleepLogRepository
+
+    @Mock
+    lateinit var userMockRepository: UserRepository
 
     @InjectMocks
     private lateinit var sleepService: SleepService
@@ -79,8 +83,8 @@ class SleepServiceTest {
         verify(mockRepository, times(1)).fetchByUserIdFromInterval(any(), any(), any())
         assertEquals(IntervalDTO(startDate = from, endDate = to), sleepData?.interval)
         assertEquals("8 h 0 min", sleepData?.avgTotalTimeInBed)
-        assertEquals("9 h 37 min", sleepData?.avgTimeGetsToBed)
-        assertEquals("17 h 37 min", sleepData?.avgTimeGetsOutOfBed)
+        assertEquals("6 h 32 min", sleepData?.avgTimeGetsToBed)
+        assertEquals("14 h 32 min", sleepData?.avgTimeGetsOutOfBed)
         assertEquals(expectedSleepQualities, sleepData?.sleepQualities)
     }
 
@@ -112,10 +116,11 @@ class SleepServiceTest {
         doNothing()
             .`when`(mockRepository)
             .create(any())
+        `when`(userMockRepository.findUserByExternalId(any())).thenReturn(user)
 
         // when
         sleepService.createSleepLog(
-            1L,
+            "external-id",
             SleepLogRequestDTO(
                 startDate = Instant.now(),
                 endDate = Instant.now(),
@@ -129,11 +134,6 @@ class SleepServiceTest {
 
     @Test
     fun shouldThrowWhenCreateSleepLog() {
-        // given
-        doThrow(EntityNotFoundException::class)
-            .`when`(mockRepository)
-            .create(any())
-
         val sleepLog =
             SleepLogRequestDTO(
                 startDate = Instant.now(),
@@ -141,16 +141,11 @@ class SleepServiceTest {
                 quality = SleepQuality.GOOD,
             )
 
-        // when
-
         assertThrows(EntityNotFoundException::class.java, {
             sleepService.createSleepLog(
-                1L,
+                "external-id",
                 sleepLog,
             )
         })
-
-        // then
-        verify(mockRepository, times(1)).create(any())
     }
 }

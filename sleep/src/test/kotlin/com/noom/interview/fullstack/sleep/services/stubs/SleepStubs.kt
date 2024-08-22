@@ -21,7 +21,7 @@ val singleSleepLogsStub =
 
 val multipleSleepLogs =
     (1..30).map { n ->
-        val start = Instant.now().minus(30, ChronoUnit.DAYS).plus(n.toLong(), ChronoUnit.DAYS)
+        val start = Instant.parse("2024-08-21T21:32:00Z").minus(30, ChronoUnit.DAYS).plus(n.toLong(), ChronoUnit.DAYS)
         SleepLogDTO(
             id = 1,
             user = User(1, "id"),
