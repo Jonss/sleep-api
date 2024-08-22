@@ -22,3 +22,11 @@ data class IntervalDTO(
     val startDate: Instant,
     val endDate: Instant,
 )
+
+data class SleepLogResponseDataDTO(
+    val interval: IntervalDTO,
+    val avgTotalTimeInBed: String,
+    val avgTimeGetsToBed: String,
+    val avgTimeGetsOutOfBed: String,
+    val sleepQualities: Map<SleepQuality, Int>,
+)
