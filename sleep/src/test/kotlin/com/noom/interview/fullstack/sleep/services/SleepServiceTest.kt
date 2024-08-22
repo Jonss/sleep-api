@@ -1,7 +1,11 @@
 package com.noom.interview.fullstack.sleep.services
 
 import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.doNothing
+import com.nhaarman.mockitokotlin2.doThrow
+import com.noom.interview.fullstack.sleep.exceptions.EntityNotFoundException
 import com.noom.interview.fullstack.sleep.models.dtos.IntervalDTO
+import com.noom.interview.fullstack.sleep.models.dtos.SleepLogRequestDTO
 import com.noom.interview.fullstack.sleep.models.enums.SleepQuality
 import com.noom.interview.fullstack.sleep.repositories.SleepLogRepository
 import com.noom.interview.fullstack.sleep.services.stubs.multipleSleepLogs
@@ -11,6 +15,7 @@ import com.noom.interview.fullstack.sleep.utils.startOfDay
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
@@ -99,5 +104,53 @@ class SleepServiceTest {
         assertEquals("", sleepData?.avgTimeGetsToBed)
         assertEquals("", sleepData?.avgTimeGetsOutOfBed)
         assertEquals(emptyMap<SleepQuality, Int>(), sleepData?.sleepQualities)
+    }
+
+    @Test
+    fun shouldCreateSleepLog() {
+        // given
+        doNothing()
+            .`when`(mockRepository)
+            .create(any())
+
+        // when
+        sleepService.createSleepLog(
+            1L,
+            SleepLogRequestDTO(
+                startDate = Instant.now(),
+                endDate = Instant.now(),
+                quality = SleepQuality.GOOD,
+            ),
+        )
+
+        // then
+        verify(mockRepository, times(1)).create(any())
+    }
+
+    @Test
+    fun shouldThrowWhenCreateSleepLog() {
+        // given
+        doThrow(EntityNotFoundException::class)
+            .`when`(mockRepository)
+            .create(any())
+
+        val sleepLog =
+            SleepLogRequestDTO(
+                startDate = Instant.now(),
+                endDate = Instant.now(),
+                quality = SleepQuality.GOOD,
+            )
+
+        // when
+
+        assertThrows(EntityNotFoundException::class.java, {
+            sleepService.createSleepLog(
+                1L,
+                sleepLog,
+            )
+        })
+
+        // then
+        verify(mockRepository, times(1)).create(any())
     }
 }
