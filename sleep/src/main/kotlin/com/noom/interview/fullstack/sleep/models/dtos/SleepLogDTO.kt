@@ -13,14 +13,20 @@ data class SleepLogDTO(
     val createdAt: Instant,
 )
 
-data class SleepLogResponseDTO(
-    val interval: IntervalDTO,
+data class SleepLogRequestDTO(
+    val startDate: Instant,
+    val endDate: Instant,
     val quality: SleepQuality,
 )
 
 data class IntervalDTO(
     val startDate: Instant,
     val endDate: Instant,
+)
+
+data class SleepLogResponseDTO(
+    val interval: IntervalDTO,
+    val quality: SleepQuality,
 )
 
 data class SleepLogResponseDataDTO(

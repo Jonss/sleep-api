@@ -2,8 +2,10 @@ package com.noom.interview.fullstack.sleep.services
 
 import com.noom.interview.fullstack.sleep.models.dtos.IntervalDTO
 import com.noom.interview.fullstack.sleep.models.dtos.SleepLogDTO
+import com.noom.interview.fullstack.sleep.models.dtos.SleepLogRequestDTO
 import com.noom.interview.fullstack.sleep.models.dtos.SleepLogResponseDTO
 import com.noom.interview.fullstack.sleep.models.dtos.SleepLogResponseDataDTO
+import com.noom.interview.fullstack.sleep.models.entities.SleepLog
 import com.noom.interview.fullstack.sleep.models.enums.SleepQuality
 import com.noom.interview.fullstack.sleep.repositories.SleepLogRepository
 import com.noom.interview.fullstack.sleep.utils.endOfDay
@@ -23,6 +25,22 @@ const val PAST_DAYS = 30L
 class SleepService {
     @Autowired
     private lateinit var sleepLogRepository: SleepLogRepository
+
+    fun createSleepLog(
+        userId: Long,
+        sleepLogDTO: SleepLogRequestDTO,
+    ) {
+        val sleepLog =
+            SleepLog(
+                id = 0,
+                userId = userId,
+                startDate = sleepLogDTO.startDate,
+                endDate = sleepLogDTO.endDate,
+                quality = sleepLogDTO.quality,
+                createdAt = Instant.now(),
+            )
+        sleepLogRepository.create(sleepLog)
+    }
 
     fun getLastNightSleepLog(userId: Long): SleepLogResponseDTO? {
         val from = startOfDay(yesterday)
