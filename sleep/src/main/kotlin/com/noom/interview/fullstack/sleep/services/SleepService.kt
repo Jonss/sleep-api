@@ -75,15 +75,20 @@ class SleepService {
         val totalSeconds =
             getTotalSeconds(sleepLogs)
 
-        val avgSeconds = totalSeconds / sleepLogs.size
+        try {
+            val avgSeconds = totalSeconds / sleepLogs.size
+            val hours = avgSeconds / 3600
+            val minutes = (avgSeconds % 3600) / 60
 
-        val hours = avgSeconds / 3600
-        val minutes = (avgSeconds % 3600) / 60
-
-        return "$hours h $minutes min"
+            return "$hours h $minutes min"
+        } catch (e: ArithmeticException) {
+            return ""
+        }
     }
 
     fun calculateAverageDates(dates: List<Instant>): String {
+        if (dates.isEmpty()) return ""
+
         val epochSeconds = dates.map { it.epochSecond }
 
         val averageEpochSeconds = epochSeconds.average().toLong()
