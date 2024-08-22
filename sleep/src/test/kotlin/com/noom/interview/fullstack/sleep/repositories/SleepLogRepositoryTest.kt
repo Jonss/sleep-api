@@ -86,10 +86,9 @@ class SleepLogRepositoryTest {
     fun shouldFindASleepLogGivenAnInterval() {
         // given
         val userId = createUser(userRepository)
-
         val from = startOfDay(yesterday)
         val to = endOfDay(yesterday)
-        val createdAt = Instant.now().minus(23, ChronoUnit.HOURS)
+        val createdAt = yesterday
         val sleepLog =
             SleepLog(
                 id = 0,

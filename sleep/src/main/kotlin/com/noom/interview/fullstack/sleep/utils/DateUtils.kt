@@ -2,14 +2,15 @@ package com.noom.interview.fullstack.sleep.utils
 
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 
 val yesterday =
-    Instant
-        .now()
+    LocalDateTime
+        .of(2024, 8, 21, 21, 32)
         .atZone(ZoneOffset.UTC)
         .minus(1, ChronoUnit.DAYS)
         .toInstant()

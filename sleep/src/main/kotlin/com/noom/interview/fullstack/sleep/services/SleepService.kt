@@ -1,6 +1,8 @@
 package com.noom.interview.fullstack.sleep.services
 
+import com.noom.interview.fullstack.sleep.exceptions.EntityNotFoundException
 import com.noom.interview.fullstack.sleep.models.dtos.IntervalDTO
+import com.noom.interview.fullstack.sleep.models.dtos.SimpleTime
 import com.noom.interview.fullstack.sleep.models.dtos.SleepLogDTO
 import com.noom.interview.fullstack.sleep.models.dtos.SleepLogRequestDTO
 import com.noom.interview.fullstack.sleep.models.dtos.SleepLogResponseDTO
@@ -8,6 +10,7 @@ import com.noom.interview.fullstack.sleep.models.dtos.SleepLogResponseDataDTO
 import com.noom.interview.fullstack.sleep.models.entities.SleepLog
 import com.noom.interview.fullstack.sleep.models.enums.SleepQuality
 import com.noom.interview.fullstack.sleep.repositories.SleepLogRepository
+import com.noom.interview.fullstack.sleep.repositories.UserRepository
 import com.noom.interview.fullstack.sleep.utils.endOfDay
 import com.noom.interview.fullstack.sleep.utils.startOfDay
 import com.noom.interview.fullstack.sleep.utils.yesterday
@@ -26,14 +29,19 @@ class SleepService {
     @Autowired
     private lateinit var sleepLogRepository: SleepLogRepository
 
+    @Autowired
+    private lateinit var userRepository: UserRepository
+
     fun createSleepLog(
-        userId: Long,
+        userId: String,
         sleepLogDTO: SleepLogRequestDTO,
     ) {
+        val user = userRepository.findUserByExternalId(userId) ?: throw EntityNotFoundException("user")
+
         val sleepLog =
             SleepLog(
                 id = 0,
-                userId = userId,
+                userId = user.id,
                 startDate = sleepLogDTO.startDate,
                 endDate = sleepLogDTO.endDate,
                 quality = sleepLogDTO.quality,
@@ -42,12 +50,16 @@ class SleepService {
         sleepLogRepository.create(sleepLog)
     }
 
-    fun getLastNightSleepLog(userId: Long): SleepLogResponseDTO? {
+    fun getLastNightSleepLog(userId: String): SleepLogResponseDTO? {
+        val user = userRepository.findUserByExternalId(userId) ?: throw EntityNotFoundException("user")
+
         val from = startOfDay(yesterday)
-        val to = startOfDay(yesterday)
-        val sleepLogs = sleepLogRepository.fetchByUserIdFromInterval(userId, from, to)
+        val to = endOfDay(yesterday)
+
+        val sleepLogs = sleepLogRepository.fetchByUserIdFromInterval(user.id, from, to)
         if (sleepLogs.isEmpty()) return null
         val sleepLog = sleepLogs[0]
+
         return SleepLogResponseDTO(
             interval =
                 IntervalDTO(
@@ -59,14 +71,16 @@ class SleepService {
     }
 
     fun getSleepLogDataFromLastNDays(
-        userId: Long,
+        userId: String,
         days: Long = PAST_DAYS,
     ): SleepLogResponseDataDTO? {
+        val user = userRepository.findUserByExternalId(userId) ?: throw EntityNotFoundException("user")
+
         val thirtyDaysAgo = Instant.now().minus(days, ChronoUnit.DAYS)
         val from = startOfDay(thirtyDaysAgo)
         val to = endOfDay(Instant.now())
 
-        val sleepLogs = sleepLogRepository.fetchByUserIdFromInterval(userId, from, to)
+        val sleepLogs = sleepLogRepository.fetchByUserIdFromInterval(user.id, from, to)
 
         return SleepLogResponseDataDTO(
             interval = IntervalDTO(startDate = from, endDate = to),
@@ -89,7 +103,7 @@ class SleepService {
             .groupingBy { it }
             .eachCount()
 
-    private fun getAvgTotalTimeInBed(sleepLogs: List<SleepLogDTO>): String {
+    private fun getAvgTotalTimeInBed(sleepLogs: List<SleepLogDTO>): SimpleTime {
         val totalSeconds =
             getTotalSeconds(sleepLogs)
 
@@ -98,14 +112,14 @@ class SleepService {
             val hours = avgSeconds / 3600
             val minutes = (avgSeconds % 3600) / 60
 
-            return "$hours h $minutes min"
+            return SimpleTime(minutes = minutes.toInt(), hours = hours.toInt())
         } catch (e: ArithmeticException) {
-            return ""
+            return SimpleTime(minutes = 0, hours = 0)
         }
     }
 
-    fun calculateAverageDates(dates: List<Instant>): String {
-        if (dates.isEmpty()) return ""
+    fun calculateAverageDates(dates: List<Instant>): SimpleTime {
+        if (dates.isEmpty()) return SimpleTime(0, 0)
 
         val epochSeconds = dates.map { it.epochSecond }
 
@@ -114,7 +128,7 @@ class SleepService {
         val averageInstant = Instant.ofEpochSecond(averageEpochSeconds)
         val time = LocalTime.ofInstant(averageInstant, ZoneId.systemDefault())
 
-        return "${time.hour} h ${time.minute} min"
+        return SimpleTime(minutes = time.minute, hours = time.hour)
     }
 
     private fun getTotalSeconds(sleepLogs: List<SleepLogDTO>): Long {

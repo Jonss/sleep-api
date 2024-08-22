@@ -1,50 +1,87 @@
-# Backend Engineering Interview: Take-home Assignment
+# Noom Take home test
 
-Hello!
+## Requirements
+- **Docker:** Ensure Docker is installed and running on your system.
+- **Java 11:** The project requires Java 11.
 
-This is the repository that contains everything you need to complete the take home assignment, part of the backend interview process for Noom.
 
-## The Assignment
+## Getting Started
+To start the project, you have two options:
 
-You need to develop an API for sleep logger that will later be integrated into the Noom web interface. The functional requirements API needs to support are:
+- Using Docker Compose: Run the following command to build and start the database and API containers:
+```sh
+docker-compose up --build
+```
 
-	•	Create the sleep log for the last night
-    1. Sleep data contains
-        1. The date of the sleep (today)
-        1. The time in bed interval
-        1. Total time in bed
-        1. How the user felt in the morning: one of [BAD, OK, GOOD]
+- Using Make Command: Alternatively, you can use the provided `make` command:
+```sh
+make run
+```
 
-1. Fetch information about the last night's sleep
-1. Get the last 30-day averages
-    1. Data that needs to be included in the response
-        1. The range for which averages are shown
-        1. Average total time in bed
-        1. The average time the user gets to bed and gets out of bed
-        1. Frequencies of how the user felt in the morning
-    1. The user can switch back to the single sleep log view (goes to requirement #1)
+## Integration tests
 
-The assignment is to:
+To run the repository tests, you'll need a PostgreSQL Docker container. Start the container by executing the following commands:
 
-1. Create tables required to support the functionality above (PostgreSQL)
-    1. The Spring project includes Flyway, which you should use to manage your DB migrations.
-1. Build required functionality in the REST API service (Kotlin/Java + Spring)
-    1. Ignore authentication and authorization, but make the REST API aware of the concept of a user.
-1. Write unit tests for the repository and any business logic.
-1. Write a simple script or create Postman collection that can be used to test the API
+```sh
+docker-compose up --build db_test
+```
 
-## Instructions
+or 
 
-	•	Create a git repository from the files provided here.
-	•	All code changes should be merged in as PRs to the repository. Separate your commits into meaningful pieces, and don't commit artifacts like build files etc.
-	•	Write code and PR descriptions as if you were writing production-level code.
-	•	The template in this repository provides a basic environment. Everything needed to start and test your code is available and functional. We expect you to use PostgreSQL and Java/Kotlin + Spring. On top of that, if you want to add new frameworks, you are free to do so.
-	•	Keep in mind the goal of the interview is to assess your software development and coding skills. There's no need to spend time tweaking the configuration of the server, the DB, or the build system. The defaults in use here are good enough for this exercise. 
-	•	Once complete, zip the repository and upload it to the take-home link provided to you by Noom's talent team.
+```sh
+make test-env
+```
 
-## How to Run
+## Testing the API Locally
 
-Dockerfiles are set up for your convenience for running the whole project. You will need docker and ports 5432 (Postgres) and 8080 (API).
+A Postman collection is available in the `resources/` directory. Import the collection and the associated environment to easily test the API endpoints.
 
-To run everything, simply execute `docker-compose up`. To build and run, execute `docker-compose up --build`.
+## API endpoints
+
+### 1. Create user
+
+Create a new user in the webserver.
+
+```sh
+curl --location 'http://localhost:8080/api/users' \
+--header 'Content-Type: application/json'
+```
+
+### 2. Create Sleep log
+
+Record a sleep log for a user.
+
+```sh
+curl --location 'http://localhost:8080/api/sleep' \
+--header 'x-external-id: d4c063d2-9ffe-4af8-b607-87cd7f5ca60c' \
+--header 'Content-Type: application/json' \
+--data '{
+    "startDate": "2024-08-20T21:32:00Z",
+    "endDate": "2024-08-21T06:30:00Z",
+    "quality": "GOOD"   
+}'
+```
+### 3. Get last night
+
+Retrieve the sleep log for the last night for a specific user.
+
+```sh
+curl --location 'http://localhost:8080/api/sleep/last-night' \
+--header 'x-external-id: d54a761a-cbc3-451b-ac9a-b89898d7b6f9' 
+```
+
+### 4. Get 30 days data
+
+Retrieve sleep logs for the past 30 days for a specific user.
+
+```sh
+curl --location 'http://localhost:8080/api/sleep/interval' \
+--header 'x-external-id: d54a761a-cbc3-451b-ac9a-b89898d7b6f9'
+```
+
+## Additional Information
+
+- Ensure the x-external-id header corresponds to the correct external_id of the user.
+- The API runs on localhost:8080 by default, but this can be configured in the Docker setup if needed.
+- The Postman environment included in the resources/ directory will help streamline testing by pre-setting common variables.
 

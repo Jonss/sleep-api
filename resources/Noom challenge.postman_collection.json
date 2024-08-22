@@ -1,0 +1,150 @@
+{
+	"info": {
+		"_postman_id": "866849a4-d007-4f9a-8cd8-0c89bb3d9fb5",
+		"name": "Noom challenge",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "3206165"
+	},
+	"item": [
+		{
+			"name": "create user",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-external-id",
+						"value": "d54a761a-cbc3-451b-ac9a-b89898d7b6f9",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/api/users",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"api",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create sleep log",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-external-id",
+						"value": "d4c063d2-9ffe-4af8-b607-87cd7f5ca60c",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"startDate\": \"2024-08-20T21:32:00Z\",\n    \"endDate\": \"2024-08-21T06:30:00Z\",\n    \"quality\": \"GOOD\"   \n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/api/sleep",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"api",
+						"sleep"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get last night",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-external-id",
+						"value": "d54a761a-cbc3-451b-ac9a-b89898d7b6f9",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"startDate\": \"2024-08-20T21:32:00Z\",\n    \"endDate\": \"2024-08-21T06:30:00Z\",\n    \"quality\": \"GOOD\"   \n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/api/sleep/last-night",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"api",
+						"sleep",
+						"last-night"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get last 30 days",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-external-id",
+						"value": "d54a761a-cbc3-451b-ac9a-b89898d7b6f9",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"startDate\": \"2024-08-20T21:32:00Z\",\n    \"endDate\": \"2024-08-21T06:30:00Z\",\n    \"quality\": \"GOOD\"   \n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/api/sleep/interval",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"api",
+						"sleep",
+						"interval"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
