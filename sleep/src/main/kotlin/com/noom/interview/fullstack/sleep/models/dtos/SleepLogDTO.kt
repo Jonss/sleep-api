@@ -31,8 +31,13 @@ data class SleepLogResponseDTO(
 
 data class SleepLogResponseDataDTO(
     val interval: IntervalDTO,
-    val avgTotalTimeInBed: String,
-    val avgTimeGetsToBed: String,
-    val avgTimeGetsOutOfBed: String,
+    val avgTotalTimeInBed: SimpleTime,
+    val avgTimeGetsToBed: SimpleTime,
+    val avgTimeGetsOutOfBed: SimpleTime,
     val sleepQualities: Map<SleepQuality, Int>,
+)
+
+data class SimpleTime(
+    val minutes: Int,
+    val hours: Int,
 )

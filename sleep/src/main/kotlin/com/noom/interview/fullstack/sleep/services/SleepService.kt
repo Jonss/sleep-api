@@ -2,6 +2,7 @@ package com.noom.interview.fullstack.sleep.services
 
 import com.noom.interview.fullstack.sleep.exceptions.EntityNotFoundException
 import com.noom.interview.fullstack.sleep.models.dtos.IntervalDTO
+import com.noom.interview.fullstack.sleep.models.dtos.SimpleTime
 import com.noom.interview.fullstack.sleep.models.dtos.SleepLogDTO
 import com.noom.interview.fullstack.sleep.models.dtos.SleepLogRequestDTO
 import com.noom.interview.fullstack.sleep.models.dtos.SleepLogResponseDTO
@@ -58,7 +59,7 @@ class SleepService {
         val sleepLogs = sleepLogRepository.fetchByUserIdFromInterval(user.id, from, to)
         if (sleepLogs.isEmpty()) return null
         val sleepLog = sleepLogs[0]
-        println(sleepLog)
+
         return SleepLogResponseDTO(
             interval =
                 IntervalDTO(
@@ -102,7 +103,7 @@ class SleepService {
             .groupingBy { it }
             .eachCount()
 
-    private fun getAvgTotalTimeInBed(sleepLogs: List<SleepLogDTO>): String {
+    private fun getAvgTotalTimeInBed(sleepLogs: List<SleepLogDTO>): SimpleTime {
         val totalSeconds =
             getTotalSeconds(sleepLogs)
 
@@ -111,14 +112,14 @@ class SleepService {
             val hours = avgSeconds / 3600
             val minutes = (avgSeconds % 3600) / 60
 
-            return "$hours h $minutes min"
+            return SimpleTime(minutes = minutes.toInt(), hours = hours.toInt())
         } catch (e: ArithmeticException) {
-            return ""
+            return SimpleTime(minutes = 0, hours = 0)
         }
     }
 
-    fun calculateAverageDates(dates: List<Instant>): String {
-        if (dates.isEmpty()) return ""
+    fun calculateAverageDates(dates: List<Instant>): SimpleTime {
+        if (dates.isEmpty()) return SimpleTime(0, 0)
 
         val epochSeconds = dates.map { it.epochSecond }
 
@@ -127,7 +128,7 @@ class SleepService {
         val averageInstant = Instant.ofEpochSecond(averageEpochSeconds)
         val time = LocalTime.ofInstant(averageInstant, ZoneId.systemDefault())
 
-        return "${time.hour} h ${time.minute} min"
+        return SimpleTime(minutes = time.minute, hours = time.hour)
     }
 
     private fun getTotalSeconds(sleepLogs: List<SleepLogDTO>): Long {
