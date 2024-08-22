@@ -2,6 +2,7 @@ package com.noom.interview.fullstack.sleep.controllers
 
 import com.noom.interview.fullstack.sleep.models.dtos.SleepLogRequestDTO
 import com.noom.interview.fullstack.sleep.models.dtos.SleepLogResponseDTO
+import com.noom.interview.fullstack.sleep.models.dtos.SleepLogResponseDataDTO
 import com.noom.interview.fullstack.sleep.services.SleepService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -30,10 +31,18 @@ class SleepController {
     }
 
     @GetMapping(value = ["/last-night"])
-    fun getLah(
+    fun lastNight(
         @RequestHeader(value = "x-external-id") externalId: String,
     ): ResponseEntity<SleepLogResponseDTO> {
         val sleepLog = sleepService.getLastNightSleepLog(externalId)
+        return ResponseEntity.ok().body(sleepLog)
+    }
+
+    @GetMapping(value = ["/interval"])
+    fun interval(
+        @RequestHeader(value = "x-external-id") externalId: String,
+    ): ResponseEntity<SleepLogResponseDataDTO> {
+        val sleepLog = sleepService.getSleepLogDataFromLastNDays(externalId)
         return ResponseEntity.ok().body(sleepLog)
     }
 }

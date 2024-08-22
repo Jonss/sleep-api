@@ -44,7 +44,7 @@ class SleepLogRepository {
             FROM sleep s
             INNER JOIN users u ON s.user_id = u.id
             WHERE s.user_id = ?
-            AND s.created_at BETWEEN ? AND ?
+            AND s.start_date BETWEEN ? AND ?
             """
 
         return try {

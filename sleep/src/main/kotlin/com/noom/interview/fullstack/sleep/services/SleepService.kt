@@ -70,14 +70,16 @@ class SleepService {
     }
 
     fun getSleepLogDataFromLastNDays(
-        userId: Long,
+        userId: String,
         days: Long = PAST_DAYS,
     ): SleepLogResponseDataDTO? {
+        val user = userRepository.findUserByExternalId(userId) ?: throw EntityNotFoundException("user")
+
         val thirtyDaysAgo = Instant.now().minus(days, ChronoUnit.DAYS)
         val from = startOfDay(thirtyDaysAgo)
         val to = endOfDay(Instant.now())
 
-        val sleepLogs = sleepLogRepository.fetchByUserIdFromInterval(userId, from, to)
+        val sleepLogs = sleepLogRepository.fetchByUserIdFromInterval(user.id, from, to)
 
         return SleepLogResponseDataDTO(
             interval = IntervalDTO(startDate = from, endDate = to),
