@@ -1,5 +1,6 @@
 package com.noom.interview.fullstack.sleep.services
 
+import com.noom.interview.fullstack.sleep.exceptions.EntityNotFoundException
 import com.noom.interview.fullstack.sleep.models.dtos.IntervalDTO
 import com.noom.interview.fullstack.sleep.models.dtos.SleepLogDTO
 import com.noom.interview.fullstack.sleep.models.dtos.SleepLogRequestDTO
@@ -8,6 +9,7 @@ import com.noom.interview.fullstack.sleep.models.dtos.SleepLogResponseDataDTO
 import com.noom.interview.fullstack.sleep.models.entities.SleepLog
 import com.noom.interview.fullstack.sleep.models.enums.SleepQuality
 import com.noom.interview.fullstack.sleep.repositories.SleepLogRepository
+import com.noom.interview.fullstack.sleep.repositories.UserRepository
 import com.noom.interview.fullstack.sleep.utils.endOfDay
 import com.noom.interview.fullstack.sleep.utils.startOfDay
 import com.noom.interview.fullstack.sleep.utils.yesterday
@@ -26,14 +28,19 @@ class SleepService {
     @Autowired
     private lateinit var sleepLogRepository: SleepLogRepository
 
+    @Autowired
+    private lateinit var userRepository: UserRepository
+
     fun createSleepLog(
-        userId: Long,
+        userId: String,
         sleepLogDTO: SleepLogRequestDTO,
     ) {
+        val user = userRepository.findUserByExternalId(userId) ?: throw EntityNotFoundException("user")
+
         val sleepLog =
             SleepLog(
                 id = 0,
-                userId = userId,
+                userId = user.id,
                 startDate = sleepLogDTO.startDate,
                 endDate = sleepLogDTO.endDate,
                 quality = sleepLogDTO.quality,
