@@ -49,12 +49,16 @@ class SleepService {
         sleepLogRepository.create(sleepLog)
     }
 
-    fun getLastNightSleepLog(userId: Long): SleepLogResponseDTO? {
+    fun getLastNightSleepLog(userId: String): SleepLogResponseDTO? {
+        val user = userRepository.findUserByExternalId(userId) ?: throw EntityNotFoundException("user")
+
         val from = startOfDay(yesterday)
-        val to = startOfDay(yesterday)
-        val sleepLogs = sleepLogRepository.fetchByUserIdFromInterval(userId, from, to)
+        val to = endOfDay(yesterday)
+
+        val sleepLogs = sleepLogRepository.fetchByUserIdFromInterval(user.id, from, to)
         if (sleepLogs.isEmpty()) return null
         val sleepLog = sleepLogs[0]
+        println(sleepLog)
         return SleepLogResponseDTO(
             interval =
                 IntervalDTO(
